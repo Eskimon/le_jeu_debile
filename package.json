@@ -1,0 +1,17 @@
+{
+  "name": "ptipiac",
+  "version": "1.0.0",
+  "description": "Le code à 4 mains c'est génial",
+  "main": "server.js",
+  "scripts": {
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "viki53",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0"
+  }
+}

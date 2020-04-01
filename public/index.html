@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <link href="/styles.css" rel="stylesheet"/>
+</head>
+<body>
+    <output id="fpscounter"></output>
+    <canvas id="latoile" height="800" width="1000"></canvas>
+    <div id="game-ui"></div>
+
+    <template id="tpl-join-game">
+        <p><label for="player-name-input">Player name</label></p>
+        <input type="text" id="player-name-input" placeholder="John Doe" required>
+
+        <form id="game-join-form">
+            <p><label for="game-join-session-code">Join a game session</label></p>
+            <input type="text" id="game-join-session-code" placeholder="Session code" pattern="[a-z0-9]{5,7}" required>
+            <button type="submit" name="joinGame">Join</button>
+        </form>
+
+        <form id="game-create-form">
+            <p>Create a new game session</p>
+            <button type="submit" name="createGame" value="create">Create</button>
+        </form>
+    </template>
+    <template id="tpl-game-info">
+        <p>Session <strong><output id="game-info-id"></output></strong></p>
+    </template>
+
+    <script type="module" src="/client.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>
