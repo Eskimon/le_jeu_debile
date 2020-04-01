@@ -2,7 +2,7 @@ import { GameAudio } from './client-audio.js'
 import { drawCanon, CANON_WIDTH } from './client-canon.js'
 import { socket } from './client-sockets.js'
 import { clearUI, showTpl, $, $$ } from './client-ui.js'
-import { deg2rad, reverseY, refreshFPS } from './client-utils.js'
+import { deg2rad, reverseY, refreshFPS, getFPS } from './client-utils.js'
 
 /**
  *        Sponsors du jeu
@@ -46,7 +46,17 @@ const playersCannonballs = new Map()
 const panier = {
 	x: 600,
 	size: 50,
+	direction: -1, // +1 vers la droite, -1 vers la gauche
+	vitesse: 1, // #de pixel parcouru à chaque tour de boucle
+	/*
+	// TODO: faire passer en # de seconde avec les FPS. J'ai créer une fonction
+	getFPS pour ça.
+	// TODO: faire passer la position du panier par le serveur, tous les joueurs
+	n'ont pas la meme position de panier selon leur FPS. Ceci peut peut-etre etre
+	reglé par le TODO précédent.
+	*/
 }
+
 const explosion = {
 	duration: 500,
 	lastStart: 0,
@@ -139,6 +149,9 @@ function draw() {
 		}
 	}
 
+	// Animation du panier
+	movePanier();
+
 	window.requestAnimationFrame(draw);
 }
 
@@ -172,6 +185,17 @@ function addScore(isScored) {
 
 function refreshScore() {
 	socket.emit('game.status', {});
+}
+
+function movePanier() {
+	if (panier.x < 800 && panier.direction == 1){
+		panier.x += panier.vitesse;
+	}else if (panier.x > 400 && panier.direction == -1) {
+		panier.x -= panier.vitesse;
+	}else{
+		panier.direction = -panier.direction;
+	}
+
 }
 
 function drawExplosion() {
