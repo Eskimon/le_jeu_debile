@@ -9,6 +9,8 @@ import { deg2rad, reverseY, refreshFPS } from './client-utils.js'
  *
  *           Lyliya
  *         QuickTilted
+ *           NeallyPJ
+ *          MelcoreHat
  *
  *           ________
  *       (( /========\
