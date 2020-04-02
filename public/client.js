@@ -229,9 +229,11 @@ function drawExplosion() {
 function drawScore() {
 	ctx.font = "18pt Verdana";
 	ctx.fillStyle = "black";
-	score.players.forEach((item, idx) => {
-		ctx.fillText(`${item['name']} - ${item['score']}`, 600, 50 + idx*22);
-	});
+	if (score.player){
+		score.players.forEach((item, idx) => {
+			ctx.fillText(`${item['name']} - ${item['score']}`, 600, 50 + idx*22);
+		});
+	}
 }
 
 function drawTrajectory() {
