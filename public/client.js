@@ -152,7 +152,7 @@ function draw() {
 			addScore(((distance + boulet.initialX) < (panier.x + panier.size)) && ((distance + boulet.initialX) > (panier.x - panier.size)))
 			boulet.triggerTime = Date.now();
 			explosion.lastStart = boulet.triggerTime;
-			socket.emit('player.shoot', {v0: canon.v0});
+			socket.emit('player.shoot', {v0: canon.v0, initialAngle: boulet.initialAngle, initialX: boulet.initialX, initialY: boulet.initialY });
 		}
 	}
 
@@ -181,6 +181,9 @@ socket.on('player.shot', (data) => {
 	}
 
 	ball.v0 = data.ball.v0
+	ball.initialAngle = data.ball.initialAngle;
+	ball.initialX = data.ball.initialX;
+	ball.initialY = data.ball.initialY;
 	ball.triggerTime = Date.now();
 });
 
@@ -282,8 +285,8 @@ function drawOthersCannonball() {
 		let t = (time - item.triggerTime) / item.speedFactor;
 		// Possible erreur en multijoueur du au canon qui n'en s'en pas au meme endroit
 		// Solution faire passer l'angle de tir par le serveur.
-		let x = boulet.initialX + Math.cos(deg2rad(item.initialAngle)) * item.v0 * t;
-		let y = -((physics.g * Math.pow(t, 2)) / 2) + (Math.sin(deg2rad(item.initialAngle)) * item.v0 * t) + boulet.initialY;
+		let x = item.initialX + Math.cos(deg2rad(item.initialAngle)) * item.v0 * t;
+		let y = -((physics.g * Math.pow(t, 2)) / 2) + (Math.sin(deg2rad(item.initialAngle)) * item.v0 * t) + item.initialY;
 		ctx.beginPath();
 		ctx.arc(x, reverseY(y), item.size, 0, Math.PI*2, true);
 		ctx.strokeStyle = "black";
