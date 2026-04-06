@@ -30,9 +30,10 @@ const physics = {
 	g: 9.81,
 }
 const canon = {
-	x: 100,
+	x: 120,
 	y: 200,
 	angle: 45, // 1-89
+	directionAngulaire: 1, // +1 : sens trigo , -1 sens horaire
 	v0: 0,  // 180 <-> 90
 	size: 100,
 }
@@ -42,6 +43,9 @@ const boulet = {
 	size: 15,
 	triggerTime: 0,
 	speedFactor: 100,
+	initialAngle: 45,
+	initialX: 0,
+	initialY: 0,
 }
 const playersCannonballs = new Map()
 
@@ -95,7 +99,7 @@ function draw() {
 	// Draw le boulet
 	drawCannonball();
 	// Draw le canon
-	drawCanon();
+	drawCanon(canon.angle);
 	// Draw le panier
 	drawPanier();
 	// Draw le score
@@ -106,8 +110,8 @@ function draw() {
 	refreshFPS();
 
 	if (boulet.x > (canon.x + distance)) {
-		boulet.x = 0;
-		boulet.y = 0;
+		boulet.x = (canon.x - canon.size / 2) +	(canon.size / 2) * Math.cos(deg2rad(canon.angle)) - boulet.size /2;
+		boulet.y = canon.y + 										(canon.size / 2) * Math.sin(deg2rad(canon.angle)) - boulet.size / 2;
 		boulet.triggerTime = 0;
 		distance = 0;
 		hauteur = 0;
@@ -130,16 +134,21 @@ function draw() {
 
 		if (max > GameAudio.threshold) {
 			canon.v0 = max / GameAudio.amortisseur;
-			distance = (Math.pow(canon.v0, 2) / physics.g) * Math.sin(2 * deg2rad(canon.angle));
-			hauteur = (Math.pow(canon.v0, 2) * Math.pow(Math.sin(deg2rad(canon.angle)), 2)) / (2 * physics.g);
+			boulet.initialAngle = canon.angle;
+			boulet.initialX = boulet.x;
+			boulet.initialY = boulet.y;
+			distance = (Math.pow(canon.v0, 2) / physics.g) * Math.sin(2 * deg2rad(boulet.initialAngle));
+			hauteur = (Math.pow(canon.v0, 2) * Math.pow(Math.sin(deg2rad(boulet.initialAngle)), 2)) / (2 * physics.g);
 
 			// Calcule le score avant l'animation :D
-			addScore(((distance + canon.x) < (panier.x + panier.size)) && ((distance + canon.x) > (panier.x - panier.size)))
+			addScore(((distance + boulet.initialX) < (panier.x + panier.size)) && ((distance + boulet.initialX) > (panier.x - panier.size)))
 			boulet.triggerTime = Date.now();
 			explosion.lastStart = boulet.triggerTime;
 			socket.emit('player.shoot', {v0: canon.v0});
 		}
 	}
+
+	moveCanon();
 
 	window.requestAnimationFrame(draw);
 }
@@ -176,6 +185,18 @@ function refreshScore() {
 	socket.emit('game.status', {});
 }
 
+function moveCanon() {
+	if (canon.angle < 89 && canon.directionAngulaire == 1){
+		canon.angle++;
+	} else if (canon.angle > 1 && canon.directionAngulaire == -1) {
+		canon.angle--;
+	} else {
+		canon.directionAngulaire = -canon.directionAngulaire;
+	}
+	boulet.x = (canon.x - canon.size / 2) +	(canon.size / 2) * Math.cos(deg2rad(canon.angle)) - boulet.size /2;
+	boulet.y = canon.y + 										(canon.size / 2) * Math.sin(deg2rad(canon.angle)) - boulet.size / 2;
+}
+
 function drawExplosion() {
 	if(!explosion.lastStart)
 		return
@@ -183,7 +204,7 @@ function drawExplosion() {
 	if((time - explosion.lastStart) > explosion.duration) {
 		explosion.lastStart = 0;
 	}
-	ctx.drawImage(explo_image, canon.x - 50, reverseY(canon.y + 45));
+	ctx.drawImage(explo_image, boulet.initialX - 50, reverseY(boulet.initialY + 45));
 }
 
 function drawScore() {
@@ -202,8 +223,8 @@ function drawTrajectory() {
 	ctx.beginPath();
 	ctx.lineWidth = 1;
 	ctx.strokeStyle = '#333333';
-	ctx.moveTo(canon.x, reverseY(canon.y));
-	ctx.quadraticCurveTo(canon.x + (distance / 2), reverseY(canon.y + hauteur * 2), canon.x + distance, reverseY(canon.y));
+	ctx.moveTo(boulet.initialX, reverseY(boulet.initialY));
+	ctx.quadraticCurveTo(boulet.initialX + (distance / 2), reverseY(boulet.initialY + hauteur * 2), boulet.initialX + distance, reverseY(boulet.initialY));
 	ctx.stroke();
 	ctx.restore();
 }
@@ -212,21 +233,21 @@ function drawCannonball() {
 	// x = cos(alpha) * v0 * t
 	// y = -1/2 * g * t² + sin(alpha) * v0 * t + h
 
-	if (!boulet.triggerTime)
-		return;
+	if (boulet.triggerTime){
+		let time = Date.now();
+		let t = (time - boulet.triggerTime) / boulet.speedFactor;
+		let x = boulet.initialX + Math.cos(deg2rad(boulet.initialAngle)) * canon.v0 * t;
+		let y = -((physics.g * Math.pow(t, 2)) / 2) + (Math.sin(deg2rad(boulet.initialAngle)) * canon.v0 * t) + boulet.initialY;
+		boulet.x = x;
+		boulet.y = y;
+	}
 
-	let time = Date.now();
-	let t = (time - boulet.triggerTime) / boulet.speedFactor;
-	let x = canon.x + Math.cos(deg2rad(canon.angle)) * canon.v0 * t;
-	let y = -((physics.g * Math.pow(t, 2)) / 2) + (Math.sin(deg2rad(canon.angle)) * canon.v0 * t) + canon.y;
 	ctx.beginPath();
-	ctx.arc(x, reverseY(y), boulet.size, 0, Math.PI*2, true);
+	ctx.arc(boulet.x, reverseY(boulet.y), boulet.size, 0, Math.PI*2, true);
 	ctx.strokeStyle = "black";
 	ctx.fillStyle = "black";
 	ctx.fill();
 	ctx.stroke();
-	boulet.x = x;
-	boulet.y = y;
 }
 
 function drawOthersCannonball() {
@@ -238,8 +259,10 @@ function drawOthersCannonball() {
 			return;
 
 		let t = (time - item.triggerTime) / item.speedFactor;
-		let x = canon.x + Math.cos(deg2rad(canon.angle)) * item.v0 * t;
-		let y = -((physics.g * Math.pow(t, 2)) / 2) + (Math.sin(deg2rad(canon.angle)) * item.v0 * t) + canon.y;
+		// Possible erreur en multijoueur du au canon qui n'en s'en pas au meme endroit
+		// Solution faire passer l'angle de tir par le serveur.
+		let x = boulet.initialX + Math.cos(deg2rad(item.initialAngle)) * item.v0 * t;
+		let y = -((physics.g * Math.pow(t, 2)) / 2) + (Math.sin(deg2rad(item.initialAngle)) * item.v0 * t) + boulet.initialY;
 		ctx.beginPath();
 		ctx.arc(x, reverseY(y), item.size, 0, Math.PI*2, true);
 		ctx.strokeStyle = "black";

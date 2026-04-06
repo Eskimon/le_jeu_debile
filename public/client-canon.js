@@ -46,13 +46,15 @@ for (let part in CANON_PARTS) {
 	svg.getBoundingClientRect()
 }
 
-export function drawCanonPart(name, dx, dy) {
+
+export function drawCanonPart(name, angle, dx, dy) {
 	const part = CANON_PARTS[name]
 	if (!part) {
 		throw new Error('Canon part not found')
 	}
 
-	if (!dx) dx = 70
+	if (!angle) angle = 42
+	if (!dx) dx = 120
 	if (!dy) dy = 570
 
 	ctx.save()
@@ -62,14 +64,14 @@ export function drawCanonPart(name, dx, dy) {
 	// ctx.fillRect(0, 0, 20, 4);
 
 	// if (part.rotate) {
-		// ctx.translate(((CANON_WIDTH * CANON_SCALE) / 2), (CANON_HEIGHT * CANON_SCALE / 2))
+		ctx.translate(-((CANON_WIDTH * CANON_SCALE) / 2), (CANON_HEIGHT * CANON_SCALE / 2))
 		// ctx.fillStyle = 'pink';
 		// ctx.fillRect(0, 0, 20, 4);
 
-		ctx.rotate(deg2rad(-42))
+		ctx.rotate(deg2rad(-angle))
 		// ctx.fillStyle = 'orange';
 		// ctx.fillRect(0, 0, 20, 4);
-		// ctx.translate((CANON_WIDTH * CANON_SCALE / 2), (CANON_HEIGHT * CANON_SCALE / 2))
+		ctx.translate((CANON_WIDTH * CANON_SCALE / 2), -(CANON_HEIGHT * CANON_SCALE / 2))
 	// }
 	// if (!part.rotate) {
 	// 	ctx.rotate(deg2rad(40))
@@ -83,11 +85,11 @@ export function drawCanonPart(name, dx, dy) {
 	ctx.restore()
 }
 
-export function drawCanon() {
-	drawCanonPart('body');
-	drawCanonPart('exit');
-	drawCanonPart('spark1');
-	drawCanonPart('spark2');
-	drawCanonPart('spark3');
-	drawCanonPart('foot');
+export function drawCanon(angle) {
+	drawCanonPart('body', angle);
+	drawCanonPart('exit', angle);
+	drawCanonPart('spark1', angle);
+	drawCanonPart('spark2', angle);
+	drawCanonPart('spark3', angle);
+	drawCanonPart('foot', 0);
 }
