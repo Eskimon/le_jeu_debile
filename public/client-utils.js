@@ -22,3 +22,7 @@ export function refreshFPS() {
 		lastFPSRefresh = time;
 	}
 }
+
+export function getFPS(){
+	return fpsCountOutput.textContent;
+}
